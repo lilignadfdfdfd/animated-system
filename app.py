@@ -104,7 +104,7 @@ def index():
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Media Downloader</title>
+    <title>Multi Tool</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -171,7 +171,7 @@ def index():
         <a href="#process_audio">Procesar Audio</a>
     </header>
     <div class="container" id="transfer">
-        <h1>Media Downloader</h1>
+        <h1>Transferir Spotify A Youtube</h1>
         <form action="/transfer" method="post">
             <label for="spotify_playlist_id">Spotify Playlist ID:</label><br>
             <input type="text" id="spotify_playlist_id" name="spotify_playlist_id" placeholder="Ingrese el ID de la lista de reproducción de Spotify"><br>
@@ -180,6 +180,7 @@ def index():
     </div>
 
     <div class="container" id="download">
+        <h1>Media Downloader</h1>
         <form action="/download" method="post">
             <label for="content_url">URL del contenido:</label><br>
             <input type="text" id="content_url" name="content_url" placeholder="Ingrese la URL del contenido"><br>
@@ -200,9 +201,10 @@ def index():
     </div>
 
     <div class="container" id="process_audio">
+    <h1>Edicion De Audio o Video</h1>
         <form method="POST" action="/process_audio" enctype="multipart/form-data">
             <input type="file" name="audio_file">
-            <input type="submit" value="Procesar audio">
+            <input type="submit" value="Procesar Video o Audio">
         </form>
     </div>
 </body>
