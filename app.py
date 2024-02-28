@@ -104,37 +104,88 @@ def index():
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Media Downloader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        form {
+            margin-top: 20px;
+        }
+        input[type="text"],
+        select {
+            padding: 10px;
+            margin: 10px 0;
+            width: calc(100% - 20px);
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        input[type="submit"] {
+            padding: 12px 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
 <body>
-    <h1>Media Downloader</h1>
-    <form action="/transfer" method="post">
-        <label for="spotify_playlist_id">Spotify Playlist ID:</label><br>
-        <input type="text" id="spotify_playlist_id" name="spotify_playlist_id"><br>
-        <input type="submit" value="Transferir a YouTube">
-    </form>
-    
-    <form action="/download" method="post">
-        <label for="content_url">URL del contenido:</label><br>
-        <input type="text" id="content_url" name="content_url"><br>
-        <label for="download_type">Tipo de descarga:</label><br>
-        <select id="download_type" name="download_type">
-            <option value="video">Video</option>
-            <option value="audio">Audio</option>
-        </select><br>
-        <label for="quality">Calidad (solo para video):</label><br>
-        <select id="quality" name="quality">
-            <option value="max">Máxima disponible</option>
-            <option value="720p">720p</option>
-            <option value="480p">480p</option>
-        </select><br>
-        <input type="submit" value="Descargar">
-    </form>
+    <div class="container">
+        <h1>Media Downloader</h1>
+        <form action="/transfer" method="post">
+            <label for="spotify_playlist_id">Spotify Playlist ID:</label><br>
+            <input type="text" id="spotify_playlist_id" name="spotify_playlist_id" placeholder="Ingrese el ID de la lista de reproducción de Spotify"><br>
+            <input type="submit" value="Transferir a YouTube">
+        </form>
+        
+        <form action="/download" method="post">
+            <label for="content_url">URL del contenido:</label><br>
+            <input type="text" id="content_url" name="content_url" placeholder="Ingrese la URL del contenido"><br>
+            <label for="download_type">Tipo de descarga:</label><br>
+            <select id="download_type" name="download_type">
+                <option value="video">Video</option>
+                <option value="audio">Audio</option>
+            </select><br>
+            <label for="quality">Calidad (solo para video):</label><br>
+            <select id="quality" name="quality">
+                <option value="max">Máxima disponible</option>
+                <option value="4k">4K</option>
+                <option value="720p">720p</option>
+                <option value="480p">480p</option>
+            </select><br>
+            <input type="submit" value="Descargar">
+        </form>
 
-    <form method="POST" action="/process_audio" enctype="multipart/form-data">
-        <input type="file" name="audio_file">
-        <input type="submit" value="Procesar audio">
-    </form>
-
+        <form method="POST" action="/process_audio" enctype="multipart/form-data">
+            <input type="file" name="audio_file">
+            <input type="submit" value="Procesar audio">
+        </form>
+    </div>
 </body>
 </html>
 """
