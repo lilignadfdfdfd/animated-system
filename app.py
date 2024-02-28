@@ -498,7 +498,6 @@ def convert_audio(file_path):
         print(f"Error converting audio: {e}")
         return None, None
 
-app = Flask(__name__)
 
 @app.route('/download', methods=['GET'])
 def download():
