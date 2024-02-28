@@ -1,3 +1,4 @@
+
 from flask import Flask, render_template, request, send_file
 import os
 import google_auth_oauthlib.flow
@@ -110,10 +111,18 @@ def index():
             background-color: #f5f5f5;
             margin: 0;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+        }
+        header {
+            background-color: #333;
+            padding: 15px;
+            text-align: center;
+        }
+        header a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 18px;
+            font-weight: bold;
         }
         .container {
             background-color: #fff;
@@ -123,6 +132,7 @@ def index():
             text-align: center;
             max-width: 400px;
             width: 100%;
+            margin: 20px auto;
         }
         h1 {
             color: #333;
@@ -155,14 +165,21 @@ def index():
     </style>
 </head>
 <body>
-    <div class="container">
+    <header>
+        <a href="#transfer">Transferir</a>
+        <a href="#download">Descargar</a>
+        <a href="#process_audio">Procesar Audio</a>
+    </header>
+    <div class="container" id="transfer">
         <h1>Media Downloader</h1>
         <form action="/transfer" method="post">
             <label for="spotify_playlist_id">Spotify Playlist ID:</label><br>
             <input type="text" id="spotify_playlist_id" name="spotify_playlist_id" placeholder="Ingrese el ID de la lista de reproducción de Spotify"><br>
             <input type="submit" value="Transferir a YouTube">
         </form>
-        
+    </div>
+
+    <div class="container" id="download">
         <form action="/download" method="post">
             <label for="content_url">URL del contenido:</label><br>
             <input type="text" id="content_url" name="content_url" placeholder="Ingrese la URL del contenido"><br>
@@ -180,7 +197,9 @@ def index():
             </select><br>
             <input type="submit" value="Descargar">
         </form>
+    </div>
 
+    <div class="container" id="process_audio">
         <form method="POST" action="/process_audio" enctype="multipart/form-data">
             <input type="file" name="audio_file">
             <input type="submit" value="Procesar audio">
