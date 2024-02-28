@@ -1,0 +1,17 @@
+Flask
+gunicorn==20.1.0
+moviepy==1.0.3
+pydub==0.25.1
+tiktokapi==2.2.0
+google-auth==2.6.0
+google-auth-oauthlib==0.4.6
+google-auth-httplib2==0.1.0
+google-api-python-client==2.20.0
+librosa==0.8.1
+numpy
+pytube==11.0.0
+werkzeug
+spotipy
+instaloader
+tiktokapi
+facebook-scraper
