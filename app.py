@@ -7,6 +7,14 @@ import spotipy
 import spotipy.util as util
 from spotipy.oauth2 import SpotifyOAuth
 from pytube import YouTube
+import os
+import threading
+import time
+import string
+import random
+import requests
+from flask import Flask, request, jsonify, send_file, send_from_directory
+from urllib.parse import unquote
 import instaloader
 # from pydub import AudioSegment
 from flask import Flask, request, send_file, render_template_string
@@ -97,6 +105,28 @@ import threading
 import time
 import requests
 from urllib.parse import unquote
+import os
+import threading
+import time
+import string
+import random
+from flask import Flask, request, jsonify, send_file
+from urllib.parse import unquote
+import yt_dlp
+import instaloader
+from TikTokApi import TikTokapi
+import ffmpeg
+import os
+import threading
+import time
+import string
+import random
+from flask import Flask, request, jsonify, send_file
+from urllib.parse import unquote
+import yt_dlp
+import instaloader
+from pydub import AudioSegment
+import ffmpeg
 
 
 
@@ -235,8 +265,8 @@ def index():
     </div>
 
     <div class="container" id="process_audio">
-        <h1>Edicion De Audio o Video</h1>
-        <form action="/process_audio" method="get" enctype="multipart/form-data">
+        <h1>Edición De Audio o Video</h1>
+        <form action="/process_audio" method="post" enctype="multipart/form-data">
             <input type="file" name="audio_file">
             <input type="submit" value="Procesar Video o Audio">
         </form>
@@ -326,7 +356,6 @@ def transfer():
 
 TEMP_DIR = "temp_files"
 
-# Crear directorio temporal si no existe
 if not os.path.exists(TEMP_DIR):
     os.makedirs(TEMP_DIR)
 
@@ -334,7 +363,7 @@ file_cleanup_lock = threading.Lock()
 
 def file_cleanup():
     while True:
-        time.sleep(10)  # Verificar cada 60 segundos
+        time.sleep(60)  # Check every 60 seconds
         with file_cleanup_lock:
             for file_name in os.listdir(TEMP_DIR):
                 file_path = os.path.join(TEMP_DIR, file_name)
@@ -349,151 +378,162 @@ def generate_random_name(length=10):
     characters = string.ascii_letters + string.digits
     return ''.join(random.choice(characters) for _ in range(length))
 
-
-def download_youtube_video(url, quality):
+def move_file(src, dest):
     try:
-        # Llamar a la API de YouTube para obtener la información del video
-        response = requests.get(f'https://www.googleapis.com/youtube/v3/videos?id={url}&key=AIzaSyCYotb1mrhR1oFjB97PTuer_61Jc--ahYM')
-        data = response.json()
-
-        # Verificar si 'items' está presente en la respuesta JSON y si tiene elementos
-        items = data.get('items', [])
-        if items:
-            video_url = items[0].get('player', {}).get('embedHtml')  # Extraer la URL del video
-
-            # Descargar el video
-            file_path = os.path.join(TEMP_DIR, f'{file_name}_{generate_random_name}_video_youtube.mp4')
-            os.system(f'wget {video_url} -O {file_path}')  # Uso de wget para descargar video
-            return file_path
-        else:
-            print("Error al obtener 'items' de la información del video o la lista está vacía.")
-            return None
+        os.rename(src, dest)
+        return True
     except Exception as e:
-        print(f"Error al descargar el video de YouTube: {e}")
-        return None
+        print(f"Error moving file: {e}")
+        return False
 
-def download_youtube_audio(url, quality):
+def delete_file(file_path):
     try:
-        # Llamar a la API de YouTube para obtener la información del video
-        response = requests.get(f'https://www.googleapis.com/youtube/v3/videos?id={url}&key=AIzaSyCYotb1mrhR1oFjB97PTuer_61Jc--ahYM')
-        data = response.json()
-
-        # Verificar si 'items' está presente en la respuesta JSON y si tiene elementos
-        items = data.get('items', [])
-        if items:
-            audio_url = items[0].get('player', {}).get('embedHtml')  # Extraer la URL del audio
-
-            # Descargar el audio
-            file_path = os.path.join(TEMP_DIR, f'{file_name}_{generate_random_name}_audio_youtube.mp3')
-            os.system(f'wget {audio_url} -O {file_path}')  # Uso de wget para descargar audio
-            return file_path
-        else:
-            print("Error al obtener 'items' de la información del audio o la lista está vacía.")
-            return None
+        os.remove(file_path)
+        return True
     except Exception as e:
-        print(f"Error al descargar el audio de YouTube: {e}")
-        return None
+        print(f"Error deleting file: {e}")
+        return False
+
+def edit_file(file_path, new_content):
+    try:
+        with open(file_path, 'w') as file:
+            file.write(new_content)
+        return True
+    except Exception as e:
+        print(f"Error editing file: {e}")
+        return False
+
+def import_file(src, dest):
+    try:
+        shutil.copyfile(src, dest)
+        return True
+    except Exception as e:
+        print(f"Error importing file: {e}")
+        return False
+
+def create_file(file_path, content):
+    try:
+        with open(file_path, 'w') as file:
+            file.write(content)
+        return True
+    except Exception as e:
+        print(f"Error creating file: {e}")
+        return False
+
+def download_youtube_video(url):
+    try:
+        ydl_opts = {
+            'outtmpl': os.path.join(TEMP_DIR, f'{generate_random_name()}_video_youtube.%(ext)s'),
+        }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=True)
+            return info['title'], ydl.prepare_filename(info)
+    except Exception as e:
+        print(f"Error downloading YouTube video: {e}")
+        return None, None
+
+def download_youtube_audio(url):
+    try:
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'outtmpl': os.path.join(TEMP_DIR, f'{generate_random_name()}_audio_youtube.%(ext)s'),
+        }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=True)
+            return info['title'], ydl.prepare_filename(info)
+    except Exception as e:
+        print(f"Error downloading YouTube audio: {e}")
+        return None, None
 
 def download_instagram_video(url):
     try:
-        # Llamar a la API de Instagram para obtener la información del video
-        response = requests.get(f'https://www.instagram.com/p/{url}/?__a=1')
-        data = response.json()
-
-        # Verificar si 'graphql' y 'shortcode_media' están presentes en la respuesta JSON
-        graphql = data.get('graphql', {})
-        shortcode_media = graphql.get('shortcode_media', {})
-        if graphql and shortcode_media:
-            video_url = shortcode_media.get('video_url')  # Extraer la URL del video
-
-            # Descargar el video
-            file_path = os.path.join(TEMP_DIR, f'{file_name}_{generate_random_name}_video_instagram.mp4')
-            os.system(f'wget {video_url} -O {file_path}')  # Uso de wget para descargar video
-            return file_path
-        else:
-            print("Error al obtener 'graphql' o 'shortcode_media' de la información del video de Instagram.")
-            return None
+        loader = instaloader.Instaloader()
+        post = instaloader.Post.from_shortcode(loader.context, url)
+        video_url = post.url
+        file_path = os.path.join(TEMP_DIR, f'{generate_random_name()}_video_instagram.mp4')
+        os.system(f'wget {video_url} -O {file_path}')
+        return f'{generate_random_name()}_video_instagram.mp4', file_path
     except Exception as e:
-        print(f"Error al descargar el video de Instagram: {e}")
-        return None
+        print(f"Error downloading Instagram video: {e}")
+        return None, None
 
 def download_tiktok_video(url):
     try:
-        # Llamar a la API de TikTok para obtener la información del video
-        response = requests.get(f'https://www.tiktok.com/oembed?url={url}')
-        data = response.json()
-
-        # Verificar si 'url' está presente en la respuesta JSON
-        video_url = data.get('url', '')
-        if video_url:
-            # Descargar el video
-            file_path = os.path.join(TEMP_DIR, f'{file_name}_{generate_random_name}_video_tiktok.mp4')
-            os.system(f'wget {video_url} -O {file_path}')  # Uso de wget para descargar video
-            return file_path
-        else:
-            print("Error al obtener 'url' de la información del video de TikTok.")
-            return None
+        api = TikTokApi()
+        video = api.get_video_by_url(url)
+        video_url = video['itemInfo']['itemStruct']['video']['downloadAddr']
+        file_path = os.path.join(TEMP_DIR, f'{generate_random_name()}_video_tiktok.mp4')
+        os.system(f'wget {video_url} -O {file_path}')
+        return f'{generate_random_name()}_video_tiktok.mp4', file_path
     except Exception as e:
-        print(f"Error al descargar el video de TikTok: {e}")
-        return None
-
+        print(f"Error downloading TikTok video: {e}")
+        return None, None
 
 def get_file_extension(content_type):
     if 'audio' in content_type:
         return '.mp3'
     elif 'video' in content_type:
         return '.mp4'
-    elif quality == '4k':
-        return '.mp4'
-    elif quality == '720p':
-        return '.mp4'
-    elif quality == '480p':
-        return '.mp4'
     else:
         return '.txt'
 
-def download_file(url, content_type, file_name):
+def download_file(url, download_type):
     try:
         response = requests.get(url)
-        file_path = os.path.join(TEMP_DIR, file_name + get_file_extension(content_type))
+        file_path = os.path.join(TEMP_DIR, f'{generate_random_name()}_file{get_file_extension(download_type)}')
         with open(file_path, 'wb') as file:
             file.write(response.content)
-        return file_path
+        return f'{generate_random_name()}_file{get_file_extension(download_type)}', file_path
     except Exception as e:
-        print(f"Error al descargar el archivo: {e}")
-        return None
+        print(f"Error downloading file: {e}")
+        return None, None
+
+def convert_audio(file_path):
+    try:
+        audio = AudioSegment.from_file(file_path)
+        converted_path = file_path.replace('.mp3', '_converted.mp3')
+        audio.export(converted_path, format='mp3')
+        return f'{generate_random_name()}_converted.mp3', converted_path
+    except Exception as e:
+        print(f"Error converting audio: {e}")
+        return None, None
+
+app = Flask(__name__)
 
 @app.route('/download', methods=['GET'])
 def download():
     content_url = unquote(request.args.get("content_url"))
     download_type = request.args.get("download_type")
-    quality = request.args.get("quality")
-
+    
     if download_type == 'video':
         if 'youtube.com' in content_url:
-            file_path = download_file(content_url, 'video', 'video_youtube')
+            video_title, file_path = download_youtube_video(content_url)
         elif 'instagram.com' in content_url:
-            file_path = download_file(content_url, 'video', 'video_instagram')
+            video_title, file_path = download_instagram_video(content_url)
         elif 'tiktok.com' in content_url:
-            file_path = download_file(content_url, 'video', 'video_tiktok')
+            video_title, file_path = download_tiktok_video(content_url)
         else:
-            return jsonify({"error": "URL de contenido no válida para la descarga de video."}), 400
-
+            return jsonify({"error": "Invalid content URL for video download."}), 400
     elif download_type == 'audio':
         if 'youtube.com' in content_url:
-            file_path = download_file(content_url, 'audio', 'audio_youtube')
+            audio_title, file_path = download_youtube_audio(content_url)
+            if file_path:
+                new_audio_title, file_path = convert_audio(file_path)
         else:
-            return jsonify({"error": "URL de contenido no válida para la descarga de audio."}), 400
-
+            return jsonify({"error": "Invalid content URL for audio download."}), 400
     else:
-        return jsonify({"error": "Tipo de descarga no válido."}), 400
+        return jsonify({"error": "Invalid download type."}), 400
 
     if file_path:
-        return send_file(file_path, as_attachment=True)
+        file_name = os.path.basename(file_path)
+        new_file_path = os.path.join(TEMP_DIR, f'{generate_random_name()}_{video_title or audio_title}{get_file_extension(download_type)}')
+        
+        if move_file(file_path, new_file_path):
+            return send_file(new_file_path, as_attachment=True, download_name=f'{video_title or audio_title}{get_file_extension(download_type)}')
+        else:
+            return jsonify({"error": "Error moving file."}), 500
 
-    return jsonify({"error": "Error al descargar el archivo."}), 500
-
-
+    return jsonify({"error": "Error downloading the file."}), 500
 
 
 
@@ -927,6 +967,7 @@ def process_audio_form():
         }
 
         input[type="text"],
+        input[type="file"],
         select {
             padding: 10px;
             margin: 10px 0;
@@ -964,7 +1005,7 @@ def process_audio_form():
         <form action="/transfer" method="get">
             <label for="spotify_playlist_id">Spotify Playlist ID:</label><br>
             <input type="text" id="spotify_playlist_id" name="spotify_playlist_id"
-                placeholder="Ingrese el ID de la lista de reproducción de Spotify"><br>
+                placeholder="Ingrese el ID de la lista de reproducción de Spotify" value=""><br>
             <input type="submit" value="Transferir a YouTube">
         </form>
     </div>
@@ -973,7 +1014,7 @@ def process_audio_form():
         <h1>Media Downloader</h1>
         <form action="/download" method="get" id="downloadForm">
             <label for="content_url">URL del contenido:</label><br>
-            <input type="text" id="content_url" name="content_url" placeholder="Ingrese la URL del contenido"><br>
+            <input type="text" id="content_url" name="content_url" placeholder="Ingrese la URL del contenido" value=""><br>
             <label for="download_type">Tipo de descarga:</label><br>
             <select id="download_type" name="download_type">
                 <option value="video">Video</option>
@@ -991,36 +1032,54 @@ def process_audio_form():
     </div>
 
     <div class="container" id="process_audio">
-        <h1>Edicion De Audio o Video</h1>
-        <form method="get" action="/process_audio" enctype="multipart/form-data">
+        <h1>Edición De Audio o Video</h1>
+        <form action="/process_audio" method="post" enctype="multipart/form-data">
             <input type="file" name="audio_file">
             <input type="submit" value="Procesar Video o Audio">
         </form>
     </div>
 
     <script>
-        function encodeFormValues(form) {
-            var formData = new FormData(form);
-            var encodedFormData = new URLSearchParams(formData).toString();
-            return encodedFormData;
-        }
+        // Decodificar todas las URL y campos al cargar la página
+        window.onload = function () {
+            var params = new URLSearchParams(window.location.search);
+
+            function decodeAndSetValue(elementId, paramName) {
+                var value = params.get(paramName);
+                if (value !== null) {
+                    document.getElementById(elementId).value = decodeURIComponent(value);
+                }
+            }
+
+            // Decodificar Spotify Playlist ID
+            decodeAndSetValue('spotify_playlist_id', 'spotify_playlist_id');
+
+            // Decodificar URL del contenido
+            decodeAndSetValue('content_url', 'content_url');
+
+            // Decodificar Tipo de descarga
+            decodeAndSetValue('download_type', 'download_type');
+
+            // Decodificar Calidad
+            decodeAndSetValue('quality', 'quality');
+        };
 
         function updateDownloadFormAction() {
             var form = document.getElementById('downloadForm');
             var contentUrl = encodeURIComponent(document.getElementById('content_url').value);
             var downloadType = encodeURIComponent(document.getElementById('download_type').value);
             var quality = encodeURIComponent(document.getElementById('quality').value);
-            var encodedFormData = encodeFormValues(form);
-
-            form.action = '/download?' + encodedFormData + '&content_url=' + contentUrl + '&download_type=' + downloadType + '&quality=' + quality;
+            form.action = '/download?' + 'content_url=' + contentUrl + '&download_type=' + downloadType + '&quality=' + quality;
         }
 
         document.getElementById('content_url').addEventListener('input', updateDownloadFormAction);
 
         document.getElementById('downloadForm').addEventListener('submit', function (event) {
             var form = event.target;
-            var encodedFormData = encodeFormValues(form);
-            form.action = form.action + '?' + encodedFormData;
+            var contentUrl = encodeURIComponent(document.getElementById('content_url').value);
+            var downloadType = encodeURIComponent(document.getElementById('download_type').value);
+            var quality = encodeURIComponent(document.getElementById('quality').value);
+            form.action = '/download?' + 'content_url=' + contentUrl + '&download_type=' + downloadType + '&quality=' + quality;
         });
     </script>
 </body>
