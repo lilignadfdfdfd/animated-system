@@ -15,3 +15,5 @@ spotipy
 instaloader
 tiktokapi
 facebook-scraper
+yt_dlp
+ffmpeg
