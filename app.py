@@ -128,7 +128,6 @@ import instaloader
 from pydub import AudioSegment
 import ffmpeg
 from ffmpeg import *
-from ffmpeg import ffprobe
 
 
 
