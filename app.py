@@ -127,7 +127,8 @@ import yt_dlp
 import instaloader
 from pydub import AudioSegment
 import ffmpeg
-import ffprobe
+from ffmpeg import *
+from ffmpeg import ffprobe
 
 
 
