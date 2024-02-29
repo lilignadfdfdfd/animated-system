@@ -17,3 +17,4 @@ tiktokapi
 facebook-scraper
 yt_dlp
 ffmpeg
+ffprobe
